@@ -1,0 +1,47 @@
+# it compare sudoers with sudoers_list and if there is any mismatch will show
+- name: Read the contents of /etc/sudoers
+  ansible.builtin.slurp:
+    src: /etc/sudoers
+  register: sudoers_content
+  ignore_errors: true
+
+- name: Check if slurp was successful
+  ansible.builtin.fail:
+    msg: "Failed to read /etc/sudoers file"
+  when: sudoers_content.failed
+
+- name: Convert sudoers content from base64
+  ansible.builtin.set_fact:
+    sudoers_text: "{{ sudoers_content['content'] | b64decode }}"
+  when: sudoers_content is defined and not sudoers_content.failed
+
+- name: Parse sudoers content to find users and groups
+  ansible.builtin.set_fact:
+    found_users_and_groups: "{{ sudoers_text | regex_findall('^(%?[^\\s#]+)\\s+ALL=\\(ALL(:ALL)?\\)\\s+ALL', multiline=True) }}"
+  when: sudoers_text is defined
+
+- name: Clean up found users and groups to remove special characters and domain parts
+  ansible.builtin.set_fact:
+    clean_found_users_and_groups: "{{ found_users_and_groups | map('first') | map('regex_replace', '^%|@.*$', '') | list }}"
+
+- name: Exclude always acceptable entries
+  ansible.builtin.set_fact:
+    filtered_found_users_and_groups: "{{ clean_found_users_and_groups | difference(always_acceptable_sudoers) }}"
+
+- name: Identify discrepancies
+  ansible.builtin.set_fact:
+    not_in_sudoers_list: "{{ filtered_found_users_and_groups | difference(sudoers_list) }}"
+    missing_from_sudoers: "{{ sudoers_list | difference(filtered_found_users_and_groups) }}"
+
+- name: Display discrepancies
+  ansible.builtin.debug:
+    msg: "Not in sudoers_list: {{ not_in_sudoers_list }} | Missing from /etc/sudoers: {{ missing_from_sudoers }}"
+    verbosity: 1
+
+- name: Assert no discrepancies in sudoers configuration
+  ansible.builtin.assert:
+    that:
+      - not_in_sudoers_list | length == 0
+      - missing_from_sudoers | length == 0
+    fail_msg: "CH (sudoers): FAIL"
+    success_msg: "CH (sudoers): PASS"

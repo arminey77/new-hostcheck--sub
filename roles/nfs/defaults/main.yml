@@ -1,0 +1,2 @@
+nfs_enabled: false
+nfs_server: test-server

@@ -1,0 +1,16 @@
+- name: Expected Netmask and Gateway
+  debug:
+    msg: "netmask: {{ network.netmask }} \ngateway: {{ network.gateway }}"
+    verbosity: 1
+
+- name: Actual Netmask and Gateway
+  debug:
+    msg: "netmask: {{ (ansible_default_ipv4.address + '/' + ansible_default_ipv4.netmask) | ansible.utils.ipaddr('prefix') }}\ngateway: {{ ansible_default_ipv4.gateway }}"
+    verbosity: 1
+
+- assert:
+    that:
+      - (ansible_default_ipv4.address + '/' + ansible_default_ipv4.netmask) | ansible.utils.ipaddr('prefix') == network.netmask
+      - ansible_default_ipv4.gateway == network.gateway
+    fail_msg: "CH (Netmask/Gateway): FAIL"
+    success_msg: "CH (Netmask/Gateway): PASS"

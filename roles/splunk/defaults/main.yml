@@ -1,0 +1,12 @@
+---
+# defaults file for splubk
+splunk_installed_dir: '/opt'
+splunk_current_path: '{{splunk_installed_dir}}/splunkforwarder'
+splunk_untar_path: '{{splunk_current_path}}/bin/splunk'
+
+repo_url: 'https://repo.asax.ir/repository/FileRepo/'
+splunk_version: 8.2.3
+splunk_tgz_file: 'splunkforwarder-{{ splunk_version }}-cd0848707637-Linux-x86_64.tgz'
+splunk_repo_path: 'it/splunkforwarder/{{ splunk_tgz_file }}'
+splunk_server: ""
+splunk_force_reinstall: false

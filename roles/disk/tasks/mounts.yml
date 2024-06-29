@@ -1,0 +1,30 @@
+- name: Extract mount_sizes
+  block:
+    - ansible.builtin.set_fact:
+        mount_sizes_raw: "{{ hostvars[inventory_hostname].ansible_mounts | to_json | from_json | reject('match', '.*snap.*|.*loop.*|.*/var/lib/containerd.*|.*/var/lib/kubelet.*' ) |
+          community.general.json_query(query) }}"
+      vars:
+        query: "[].{size_total: size_total , mount: mount}"
+
+    - ansible.builtin.set_fact:
+        mount_sizes_result: "{{ mount_sizes_result | from_yaml }}"
+      vars:
+        mount_sizes_result: |
+          {% for mount_size_item in mount_sizes_raw %}
+            - {{ mount_size_item.mount }}: {{ mount_size_item.size_total|human_readable(unit='G') }}
+          {% endfor %}
+
+- name: Expected mount_sizes
+  debug:
+    msg: "{{ disk.mount_sizes | sort_dict_bykey | to_nice_yaml(indent=2) }}"
+    verbosity: 1
+- name: Actual mount_sizes
+  debug:
+    msg: "{{ mount_sizes_result | sort_dict_bykey | to_nice_yaml(indent=2) }}"
+    verbosity: 1
+
+- assert:
+    that:
+      - " (disk.mount_sizes | sort_dict_bykey) == (mount_sizes_result | sort_dict_bykey)"
+    fail_msg: "CH (Host Partitions): FAIL"
+    success_msg: "CH (Host Partitions): PASS"

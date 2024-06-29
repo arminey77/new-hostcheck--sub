@@ -1,0 +1,19 @@
+## Netplan
+change_netplan_config_enabled: false
+
+# Stage
+# searching_domain: "stdc.local"
+# dns_servers:
+#   - "172.20.25.210"
+#   - "192.168.55.10"
+#   - "172.28.33.2"
+
+# Prod
+searching_domain:
+  - "op.local"
+  - "asadc.local"
+dns_servers:
+  - "172.28.32.90"
+  - "172.28.32.82"
+
+# TODO: the variables will move to the 'inventory'

@@ -1,0 +1,7 @@
+- name: Change sysmon service disable
+  systemd:
+    name: sysmon
+    state: "{{ sysmon_state }}"
+    enabled: "{{ sysmon_enabled }}"
+  when: change_sysmon_state
+  ignore_errors: true

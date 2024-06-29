@@ -1,0 +1,26 @@
+
+- name: Ensure home directory exists for the user
+  file:
+    path: "/home/{{ item.key }}{{ ssh_authorized_keys_zone }}"
+    state: directory
+    owner: "{{ item.key }}{{ ssh_authorized_keys_zone }}"
+    group: "domain users{{ ssh_authorized_keys_zone }}"
+    mode: '0755'
+  loop: "{{ ssh_authorized_keys | default({}) | dict2items }}"
+
+- name: Set authorized key taken from file
+  ansible.posix.authorized_key:
+    state: present
+    key: "{{ item.value.public_key }}"
+    path: "/home/{{item.key}}{{ ssh_authorized_keys_zone }}/.ssh/authorized_keys"
+    user: "{{ ansible_user }}"
+    manage_dir: true
+  loop: "{{ ssh_authorized_keys | default({}) | dict2items }}"
+
+- name: Change ownership of authorized_keys file
+  ansible.builtin.file:
+    path: "/home/{{ item.key }}{{ ssh_authorized_keys_zone }}/.ssh"
+    owner: "{{ item.key }}{{ ssh_authorized_keys_zone }}"
+    group: root
+    recurse: yes
+  loop: "{{ ssh_authorized_keys | default({}) | dict2items }}"

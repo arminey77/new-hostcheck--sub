@@ -1,0 +1,7 @@
+---
+# tasks file for splubk
+- name: splunk configuration
+  include_tasks: splunk.yml
+
+- name: Flush handlers
+  meta: flush_handlers

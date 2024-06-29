@@ -1,0 +1,13 @@
+gpg_keys_url:
+  - "https://repo.asax.ir/repository/FileRepo/docker/gpgkey/gpg"
+  - "http://repo.asax.ir/repository/prod-cdn.packages.k8s.io--repositories--isv--kubernetes--core--stable--v1.26--deb/Release.key"
+  - "http://repo.asax.ir/repository/prod-cdn.packages.k8s.io--repositories--isv--kubernetes--core--stable--v1.27--deb/Release.key"
+  - "http://repo.asax.ir/repository/prod-cdn.packages.k8s.io--repositories--isv--kubernetes--core--stable--v1.28--deb/Release.key"
+  - "https://repo.asax.ir/repository/FileRepo/hashicorp/consul/gpg"
+  - "https://repo.asax.ir/repository/FileRepo/kubernetes/gpgkey/apt-key.gpg"
+  - "https://repo.asax.ir/repository/FileRepo/ansible/gpg"
+  - "https://repo.asax.ir/repository/FileRepo/apt/packages.microsoft/gpgkey/microsoft.asc"
+  - "https://repo.asax.ir/repository/FileRepo/apt/ppa.launchpadcontent.net--deadsnakes--ppa--ubuntu/gpg"
+  - "https://repo.asax.ir/repository/FileRepo/mongodb/gpgkey/server-7.0.asc"
+  - "https://repo.asax.ir/repository/apt.postgresql.org--pub--repos--apt/ACCC4CF8.asc"
+  - "https://repo.asax.ir/repository/FileRepo/hashicorp/terraform/gpg"

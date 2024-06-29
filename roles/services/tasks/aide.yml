@@ -1,0 +1,18 @@
+- name: Find files containing 'aide' in /etc/cron.daily
+  ansible.builtin.find:
+    paths: /etc/cron.daily
+    patterns: '*aide*'
+  register: aide_files
+
+- name: Rename files by adding .bak to the end
+  ansible.builtin.command:
+    cmd: mv "{{ item.path }}" "{{ item.path }}.bak"
+  loop: "{{ aide_files.files }}"
+  when: aide_files.matched > 0
+
+- name: Remove execute permissions from the renamed files
+  ansible.builtin.file:
+    path: "{{ item.path }}.bak"
+    mode: '0644'
+  loop: "{{ aide_files.files }}"
+  when: aide_files.matched > 0

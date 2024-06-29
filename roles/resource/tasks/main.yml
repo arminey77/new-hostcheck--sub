@@ -1,0 +1,15 @@
+- name: Expected VCPU/Memory
+  debug:
+    msg: "vcpu: {{ resource.vcpu }} \nmemory: {{ resource.memory }}"
+    verbosity: 1
+- name: Actual VCPU/Memory
+  debug:
+    msg: "vcpu: {{ ansible_processor_vcpus }} \nmemory: {{ ansible_memtotal_mb }}"
+    verbosity: 1
+
+- assert:
+    that:
+      - ansible_processor_vcpus == resource.vcpu
+      - ansible_memtotal_mb == resource.memory
+    fail_msg: "CH (CPU/Memory): FAIL"
+    success_msg: "CH (CPU/Memory): PASS"

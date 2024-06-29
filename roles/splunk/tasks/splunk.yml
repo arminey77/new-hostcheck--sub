@@ -1,0 +1,119 @@
+# ---
+
+
+# - name: Get Splunk TGZ filename and version from dowloaded TGZ file
+#   set_fact:
+#     splunk_tgz_filename: "{{ splunk_downloaded_tgz.dest | regex_search('(splunkforwarder-.+-Linux-x86_64.tgz)') }}"
+#     splunk_tgz_version: "{{ splunk_downloaded_tgz.dest | regex_findall('splunkforwarder-([0-9.]+)') }}"
+
+- name: Check if Splunk path exists
+  stat:
+    path: "{{ splunk_installed_dir }}/splunkforwarder"
+  register: splunk_path
+
+- name: Read /etc/splunk.version file, if any
+  ansible.builtin.slurp:
+    src: "{{ splunk_installed_dir }}/splunkforwarder/etc/splunk.version"
+  register: splunk_version_result
+  when: splunk_path.stat.exists == true
+
+- name: Get Splunk current version from /etc/splunk.version, if installed
+  set_fact:
+    splunk_current_version: "{{ splunk_version_result['content'] | b64decode | regex_findall('VERSION=([0-9.]+)') }}"
+  when: splunk_path.stat.exists == true
+
+- name: Check Splunk status
+  shell: "ps -ef | grep splunkd | wc --lines"
+  register: splunk_status
+  changed_when: false
+  failed_when: false
+
+- name: Check splunkd status
+  shell: systemctl status splunkd.service
+  changed_when: false
+  register: splunk_service_status
+  failed_when: false
+
+- name: Debug on Splunk status
+  debug:
+    msg: "Splunk statue: {{ splunk_status.stdout | trim | int  <= 2 }} "
+    verbosity: 1
+
+- name: Install Splunk # Splunk process is not running or version missmatch
+  when: "(splunk_status.stdout | trim | int  <= 2) or
+    (splunk_current_version is undefined) or
+    (splunk_version is not version(splunk_current_version[0], '==')) or
+    (splunk_service_status.rc != 0) or
+    splunk_force_reinstall
+    "
+  block:
+    - name: Download Splunk latest version
+      get_url:
+        url: "{{ repo_url }}{{ splunk_repo_path }}"
+        dest: "/tmp/"
+        mode: 0644
+      register: splunk_downloaded_tgz
+
+    - name: Check if splunk init.d script exists
+      stat:
+        path: /etc/init.d/splunk
+      register: splunk_initd
+
+    - name: Check splunkd.service exists
+      stat:
+        path: /etc/init.d/splunk
+      register: splunkd_service_exists
+
+    - name: Stop splunkd.service
+      service:
+        name: splunkd.service
+        enabled: yes
+        state: stopped
+      when: splunkd_service_exists.stat.exists
+      failed_when: false
+
+    - name: Make sure to stop Splunk
+      command: "{{ splunk_untar_path }} stop"
+      when: splunk_path.stat.exists == true
+      register: splunk_stop_command_output
+      changed_when:
+        - '"Done." in splunk_stop_command_output.stderr'
+      failed_when: false
+      # failed_when:
+      #   - splunk_stop_command_output is failed
+      #   - '"splunkd is not running" not in splunk_stop_command_output.stderr'
+
+    - name: Remove Current Splunk Version '{{splunk_current_version[0]}}'
+      ansible.builtin.file:
+        state: absent
+        path: "{{ splunk_current_path }}"
+
+    - name: Unpack Splunk TGZ '{{ splunk_version }}' file in '{{ splunk_installed_dir }}'
+      unarchive:
+        src: "{{ splunk_downloaded_tgz.dest }}"
+        dest: "{{ splunk_installed_dir }}"
+        remote_src: yes
+
+    - name: Config Splunk deploy poll
+      ansible.builtin.shell: "{{ splunk_untar_path }}  --answer-yes --no-prompt --accept-license set deploy-poll {{ splunk_server }}"
+      register: splunk_poll_config
+      retries: 3
+      delay: 3
+      until: splunk_poll_config.rc == 0
+
+    - name: Show splunk poll config output
+      debug:
+        msg: "{{ splunk_poll_config }}"
+        verbosity: 1
+
+    - name: Config Splunk Systemd
+      ansible.builtin.shell: "{{ splunk_untar_path }} --answer-yes --no-prompt --accept-license enable boot-start -systemd-managed 0 "
+      # ansible.builtin.shell: "{{ splunk_untar_path }} --answer-yes --no-prompt --accept-license enable boot-start  -user root -systemd-managed 1 "
+      register: splunk_create_config
+      notify: Start and enable splunkd.service
+
+    - name: Show Config Splunk Systemd Output
+      debug:
+        msg: "{{splunk_create_config}}"
+        verbosity: 1
+

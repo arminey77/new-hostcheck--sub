@@ -1,0 +1,21 @@
+modules:
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      query_response:
+        - expect: '.*'
+  simple_tcp_connect:
+    prober: tcp
+    timeout: 5s
+  full_tcp_connect: 
+    prober: tcp
+    tcp: 
+      ip_protocol_fallback: false
+      preferred_ip_protocol: ip4
+    timeout: 15s
+  icmp:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: ip4

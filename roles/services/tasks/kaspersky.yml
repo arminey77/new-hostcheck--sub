@@ -1,0 +1,7 @@
+- name: Change Kaspersky service status
+  systemd:
+    name: kesl
+    state: "{{ Kaspersky_state }}"
+    enabled: "{{ Kaspersky_enabled }}"
+  when: change_kaspersky_state
+  ignore_errors: true

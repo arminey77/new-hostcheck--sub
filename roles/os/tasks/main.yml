@@ -1,0 +1,21 @@
+- name: Read /etc/hosts file
+  ansible.builtin.shell: cat /etc/hosts
+  register: hosts_file
+
+- name: Filter out comments and empty lines
+  ansible.builtin.set_fact:
+    filtered_hosts_entries: "{{ hosts_file.stdout_lines | reject('match', '^#|^$') | map('regex_replace', '\\s+$', '') | list }}"
+
+- name: Set expected hosts entries
+  ansible.builtin.set_fact:
+    expected_entries: "{{ expected_hosts_file_entries }}"
+
+- name: Identify unknown entries
+  ansible.builtin.set_fact:
+    unknown_entries: "{{ filtered_hosts_entries | difference(expected_entries) }}"
+
+- name: Print unknown entries
+  ansible.builtin.debug:
+    msg: "Unknown entry in /etc/hosts: {{ unknown_entries }}"
+  loop: "{{ unknown_entries }}"
+  when: unknown_entries | length > 0

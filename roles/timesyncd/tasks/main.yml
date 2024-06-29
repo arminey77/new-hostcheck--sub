@@ -1,0 +1,24 @@
+
+### https://wiki.archlinux.org/title/systemd-timesyncd
+- name: Install systemd-timesyncd
+  package:
+    name: systemd-timesyncd
+
+- name: Configure systemd-timesyncd
+  template:
+    src: timesyncd.conf.j2
+    dest: /etc/systemd/timesyncd.conf
+    mode: 0644
+    owner: root
+    group: root
+  notify:
+    - Restart systemd-timesyncd
+
+- name: Start and enable systemd-timesyncd
+  service:
+    name: systemd-timesyncd.service
+    enabled: yes
+    state: started
+
+- name: Flush handlers
+  meta: flush_handlers

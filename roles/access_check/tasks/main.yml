@@ -1,0 +1,24 @@
+- name: Install requirements
+  include_tasks: requirements.yml
+  when:
+    - install_requirements
+
+- name: Show LOCALHOST access check list
+  debug:
+    msg: "{{local_access_list}}"
+    verbosity: 1
+
+- name: Access check localhost
+  include_tasks: access_check_localhost.yml
+  when:
+    - (local_access_list.groups | length>0) or (local_access_list.singles | length>0)
+    - access_check_localhost_enabled
+
+- name: Show Remote access check list
+  debug:
+    msg: "{{access_list}}"
+    verbosity: 1
+
+- name: Access check remote
+  include_tasks: access_check_remote.yml
+  when: (access_list.groups | length>0) or (access_list.singles | length>0)

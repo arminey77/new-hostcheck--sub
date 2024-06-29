@@ -1,0 +1,15 @@
+[Unit]
+Description=BlackBoxExporter
+After=network-online.target
+
+[Service]
+TimeoutStartSec=0
+User=blackbox_exporter
+Group=blackbox_exporter
+Type=simple
+ExecStart={{ blackbox_exporter_bin_path }} --web.listen-address={{ blackbox_exporter_host }}:{{ blackbox_exporter_port }} {{ blackbox_exporter_options }}
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

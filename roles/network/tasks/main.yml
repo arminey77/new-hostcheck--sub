@@ -1,0 +1,19 @@
+- name: Check General - Network Config
+  include_tasks:
+    file: general.yml
+    apply:
+      tags:
+        - general_networkcheck
+  tags:
+    - general_networkcheck
+
+- name: Config Netplan
+  include_tasks:
+    file: netplan.yml
+    apply:
+      tags:
+        - config_netplan
+  tags:
+    - config_netplan
+  when:
+    - change_netplan_config_enabled

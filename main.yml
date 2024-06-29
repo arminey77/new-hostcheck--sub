@@ -1,0 +1,40 @@
+## ssh check to one server; for avoiding account lock(password retry.)
+- name: Check SSH connnection
+  hosts: all
+  # vars_files:
+    # - root-key.yml
+  gather_facts: no
+  tasks:
+    - name: Test SSH connection credentials
+      run_once: true
+      ansible.builtin.ping:
+      tags:
+        - always
+
+## List of roles
+
+- name: Play With << All >> Hosts
+  hosts: all
+  roles:
+    - { role: os, tags: "os, node, info_check", become: yes}
+    - { role: package, tags: "package, package_apt", become: yes}
+    - { role: disk, tags: "disk, info_check", become: yes}
+    - { role: timesyncd, tags: "timesyncd", become: yes}
+    - { role: services, tags: "services", become: yes}
+    - { role: network, tags: "network", become: yes}
+    - { role: certificates, tags: "certificates", become: yes}
+    - { role: sshd_access, tags: "sshd_access, info_check", become: yes} # Todo: Add home
+    - { role: resource, tags: "resource, info_check", become: yes}
+    - { role: splunk, tags: "splunk", become: yes}
+    - { role: nfs, tags: "nfs", become: yes} # Todo: Just install on workers(except w1)
+    - { role: platform_services/blackbox_exporter, tags: "blackbox_exporter, platform_services", become: yes}
+    - { role: access_check, tags: "access_check, info_check", become: yes}
+
+  tasks:
+    - name: Inform check mode
+      fail:
+        msg: "Warning: Applied in check mode"
+      ignore_errors: True
+      when: ansible_check_mode
+      tags:
+        - always

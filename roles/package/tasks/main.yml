@@ -1,0 +1,17 @@
+- name: Apt install
+  include_tasks:
+    file: apt.yml
+    apply:
+      tags:
+        - package_apt
+  tags:
+    - package_apt
+
+- name: Fix Packages
+  include_tasks:
+    file: dpkg.yml
+    apply:
+      tags:
+        - fix_dpkg
+  tags:
+    - fix_dpkg

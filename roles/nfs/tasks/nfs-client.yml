@@ -1,0 +1,23 @@
+- name: Install nfs-common
+  package:
+    name: nfs-common
+
+- name: Create directory /mnt/nfs
+  file:
+    path: /mnt/nfs
+    state: directory
+    mode: '0755'
+
+- name: Mount NFS share
+  mount:
+    src: "{{ hostvars[nfs_server].ansible_host }}:/mnt/nfs"
+    path: "/mnt/nfs"
+    fstype: nfs
+    opts: "defaults"
+    state: mounted
+
+- name: Add NFS mount to /etc/fstab
+  lineinfile:
+    path: /etc/fstab
+    line: "{{ hostvars[nfs_server].ansible_host }}:/mnt/nfs /mnt/nfs nfs defaults 0 0"
+    state: present

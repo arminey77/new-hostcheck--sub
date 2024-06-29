@@ -1,0 +1,6 @@
+public_cert: "asadc.local.crt"
+# or public_cert: "asadc.local.crt"
+
+cert_permissions_owner: root
+cert_permissions_group: root
+cert_permissions_mode: '0644'

@@ -1,0 +1,7 @@
+
+- name: Start and enable splunkd.service
+  service:
+    name: splunkd.service
+    enabled: yes
+    state: restarted
+  ignore_errors: true

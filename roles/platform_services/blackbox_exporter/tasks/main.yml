@@ -1,0 +1,79 @@
+---
+- name: Check current blackbox_exporter version.
+  command: "{{ blackbox_exporter_bin_path }} --version"
+  failed_when: false
+  changed_when: false
+  register: blackbox_exporter_version_check
+
+- name: Download and unarchive blackbox_exporter into temporary location.
+  unarchive:
+    src: "{{ blackbox_exporter_download_url }}"
+    dest: /tmp
+    remote_src: true
+    mode: 0755
+  when: >
+    blackbox_exporter_version_check.stdout is not defined
+    or blackbox_exporter_version_check.stdout | length == 0
+
+  register: blackbox_exporter_download_check
+
+- name: Move blackbox_exporter binary into "{{ blackbox_exporter_bin_path }}"
+  copy:
+    src: "/tmp/blackbox_exporter-0.25.0.linux-amd64/blackbox_exporter"
+    dest: "{{ blackbox_exporter_bin_path }}"
+    mode: 0755
+    remote_src: true
+  notify: restart blackbox_exporter
+  when: >
+    blackbox_exporter_download_check is changed
+    or blackbox_exporter_version_check.stdout | length == 0
+
+- name: Create blackbox_exporter user
+  user:
+    name: blackbox_exporter
+    shell: /sbin/nologin
+    state: present
+    create_home: false
+
+- name: Copy the blackbox_exporter systemd unit file.
+  template:
+    src: blackbox_exporter.service.j2
+    dest: /etc/systemd/system/blackbox_exporter.service
+    mode: 0644
+  register: blackbox_exporter_service
+
+- name: Reload systemd daemon if unit file is changed.
+  systemd:
+    daemon_reload: true
+  notify: restart blackbox_exporter
+  when: blackbox_exporter_service is changed
+
+- name: Ensures /etc/blackbox-exporter dir exists
+  file:
+    path: "/etc/blackbox-exporter"
+    mode: "0744"
+    owner: blackbox_exporter
+    state: directory
+
+- name: Configure blackbox_exporter
+  ansible.builtin.template:
+    src: config.xml.j2
+    dest: /etc/blackbox-exporter/config.xml
+    mode: "0744"
+    owner: blackbox_exporter
+    backup: yes
+  notify:
+    - restart blackbox_exporter
+
+- name: Ensure blackbox_exporter is running and enabled at boot.
+  service:
+    name: blackbox_exporter
+    state: "{{ blackbox_exporter_state }}"
+    enabled: "{{ blackbox_exporter_enabled }}"
+
+- name: Verify blackbox_exporter is responding to requests.
+  uri:
+    url: "http://{% if blackbox_exporter_host !='' %}{{ blackbox_exporter_host }}{% else %}localhost{% endif %}:{{ blackbox_exporter_port }}/"
+    return_content: true
+  register: metrics_output
+  failed_when: "'Metrics' not in metrics_output.content"

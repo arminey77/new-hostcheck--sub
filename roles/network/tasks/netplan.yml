@@ -1,0 +1,37 @@
+- name: Find Netplan config file
+  ansible.builtin.find:
+    paths: "/etc/netplan"
+    patterns: "*.yaml"
+  register: netplan_file
+
+- name: Read the Netplan config file
+  ansible.builtin.slurp:
+    src: "{{ netplan_file.files[0].path }}"
+  register: netplan_content
+
+- name: Decode Netplan YAML content
+  ansible.builtin.set_fact:
+    netplan_config: "{{ netplan_content.content | b64decode | from_yaml }}"
+
+- name: Determine ethernet interface name
+  ansible.builtin.set_fact:
+    ethernet_interface: "{{ netplan_config['network']['ethernets'] | dict2items | map(attribute='key') | list | first }}"
+
+- name: Determine default gateway
+  ansible.builtin.set_fact:
+    default_gateway: "{{ netplan_config['network']['ethernets'][ethernet_interface].get('gateway4') | default((netplan_config['network']['ethernets'][ethernet_interface].get('routes') | default([]) | selectattr('to', 'in', ['0.0.0.0/0', 'default']) | map(attribute='via') | first), true) }}"
+
+- name: Determine IP addresses
+  ansible.builtin.set_fact:
+    ip_addresses: "{{ netplan_config['network']['ethernets'][ethernet_interface]['addresses'] }}"
+
+
+- name: Generate new Netplan configuration
+  ansible.builtin.template:
+    src: netplan_template.j2
+    dest: "{{ netplan_file.files[0].path }}"
+    backup: true
+  notify: apply netplan configuration
+
+- name: Flush handlers
+  meta: flush_handlers

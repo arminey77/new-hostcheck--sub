@@ -1,0 +1,12 @@
+---
+blackbox_exporter_version: '0.25.0'
+blackbox_exporter_download_url: https://repo.asax.ir/repository/FileRepo/exporter/blackbox/blackbox_exporter-0.25.0.linux-amd64.tar.gz/blackbox_exporter-0.25.0.linux-amd64.tar.gz
+
+blackbox_exporter_config_path: /etc/blackbox-exporter/config.xml
+blackbox_exporter_bin_path: /usr/local/bin/blackbox_exporter
+blackbox_exporter_host: '0.0.0.0'
+blackbox_exporter_port: 9115
+blackbox_exporter_options: '--config.file={{ blackbox_exporter_config_path }}'
+
+blackbox_exporter_state: started
+blackbox_exporter_enabled: true

@@ -1,0 +1,36 @@
+- name: Check SSH connnection
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Test SSH connection credentials
+      run_once: true
+      ansible.builtin.ping:
+      tags:
+        - always
+
+- name: Play With << All >> Hosts
+  hosts: all
+  roles:
+    - { role: access_check, tags: "access_check", become: yes,
+      access_check_localhost_enabled: false,
+      install_requirements: false,
+      access_list: {
+        groups: {},
+        singles: [
+          {
+            name: "{% set access_check_single_splited = access_check_single.split(':') %}{{access_check_single_splited[0]}}",
+            ports: [
+              "{% set access_check_single_splited = access_check_single.split(':') %}{{access_check_single_splited[1]}}"
+            ]
+          }
+        ]
+      }
+    }
+  tasks:
+    - name: Inform check mode
+      fail:
+        msg: "Warning: Applied in check mode"
+      ignore_errors: True
+      when: ansible_check_mode
+      tags:
+        - always

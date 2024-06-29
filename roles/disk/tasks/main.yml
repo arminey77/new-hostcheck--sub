@@ -1,0 +1,17 @@
+- name: Check mounts
+  include_tasks:
+    file: mounts.yml
+    apply:
+      tags:
+        - disk_mounts
+  tags:
+    - disk_mounts
+
+- name: Check LVM
+  include_tasks:
+    file: lvm.yml
+    apply:
+      tags:
+        - disk_lvm
+  tags:
+    - disk_lvm

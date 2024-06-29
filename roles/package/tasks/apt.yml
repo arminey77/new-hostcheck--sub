@@ -1,0 +1,15 @@
+- name: Add GPG keys
+  apt_key:
+    url: "{{ item }}"
+    state: present
+  loop: "{{ gpg_keys_url }}"
+
+- name: Generate repo list
+  ansible.builtin.template:
+    src: repo.asax.list.j2
+    dest: "/etc/apt/sources.list.d/repo.asax.list"
+    backup: true
+  notify: Update apt packages
+
+- name: Flush handlers
+  meta: flush_handlers

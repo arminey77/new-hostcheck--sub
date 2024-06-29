@@ -1,0 +1,26 @@
+- name: Sudoers configuration check
+  include_tasks:
+    file: sudoers.yml
+    apply:
+      tags:
+        - sshd_access_sudoers
+  tags:
+    - sshd_access_sudoers
+
+- name: Sssd service configuration check
+  include_tasks:
+    file: sssd.yml
+    apply:
+      tags:
+        - sshd_access_sssd
+  tags:
+    - sshd_access_sssd
+
+- name: ssh authorized keys service configuration
+  include_tasks:
+    file: authorized_keys.yml
+    apply:
+      tags:
+        - add_authorized_keys
+  tags:
+    - add_authorized_keys

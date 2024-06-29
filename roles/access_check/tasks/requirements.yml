@@ -1,0 +1,24 @@
+- name: Install pip
+  ansible.builtin.apt:
+    name: python3-pip
+    state: latest
+    update_cache: yes
+    force_apt_get: true
+
+- name: pkgs.yaml | Upgrade pip
+  pip:
+    name: pip
+    extra_args: "-i {{ pip_repo }} --upgrade"
+
+- name: Install dnspython library
+  ansible.builtin.pip:
+    name: dnspython
+    extra_args: "-i {{ pip_repo }}"
+
+- name: Make sure requirements installed
+  debug:
+    msg: "Make sure you installed dnspython on localhost by requirements.txt"
+    verbosity: 1
+  run_once: True
+  delegate_to: localhost
+  become: False

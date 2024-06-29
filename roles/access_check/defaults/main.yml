@@ -1,0 +1,4 @@
+install_requirements: True
+access_check_localhost_enabled: True
+failed_on: False # set it false by default because rate of failed is too much!
+timeout_value: 1

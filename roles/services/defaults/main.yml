@@ -1,0 +1,9 @@
+SystemMaxUse: 500M
+
+change_kaspersky_state: true
+Kaspersky_enabled: false
+Kaspersky_state: stopped
+
+change_sysmon_state: true
+sysmon_enabled: false
+sysmon_state: stopped

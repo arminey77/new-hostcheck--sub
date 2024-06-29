@@ -1,0 +1,50 @@
+- name: LOCALHOST
+  set_fact:
+    flat_access_list: "{{ _flat_access_list | from_yaml }}"
+  run_once: True
+  delegate_to: localhost
+  become: False
+  vars:
+    _flat_access_list: |-
+      access_list:
+      {% for group in local_access_list.groups -%}
+      {% for port in group.ports %}
+      {% for single in groups[group.name] %}
+      - {name: {{ single }}, port: {{ port }}}
+      {% endfor %}
+      {% endfor %}
+      {% endfor %}
+      {% for single in local_access_list.singles %}
+      {% for port in single.ports %}
+      - {name: {{ single.name }}, port: {{ port }}}
+      {% endfor %}
+      {% endfor %}
+
+- debug:
+    msg: "{{flat_access_list}}"
+    verbosity: 1
+  run_once: True
+  delegate_to: localhost
+  become: False
+
+- name: LOCALHOST Check group access lists
+  access_check:
+    dst: "{{ access_item.name }}"
+    port: "{{ access_item.port }}"
+    timeout: "{{ timeout_value }}"
+    failed_on: "{{ failed_on }}"
+  with_items: "{{ flat_access_list.access_list }}"
+  loop_control:
+    loop_var: access_item
+  register: access_check_result
+  run_once: True
+  delegate_to: localhost
+  become: False
+
+- name: DENIED LOCALHOST access list
+  debug:
+    msg: "{{ access_check_result | community.general.json_query('results[?access==`false`].access_item') | to_nice_yaml  }}"
+  changed_when: access_check_result | community.general.json_query('results[?access==`false`].access_item')|length>0
+  run_once: True
+  delegate_to: localhost
+  become: False

@@ -1,0 +1,2 @@
+always_acceptable_sudoers: ['root', 'admin', 'sudo']
+sudoers_list: {}

@@ -1,0 +1,9 @@
+- name: Create cronfile for ManageEngine cleanup
+  ansible.builtin.cron:
+    name: manageengine_cleanup
+    minute: "0"
+    hour: "0"
+    day: "*/3"
+    user: root
+    job: "rm -rf /usr/local/manageengine/uems_agent/data/patch/store"
+    cron_file: ansible_managedengine-delete-files
